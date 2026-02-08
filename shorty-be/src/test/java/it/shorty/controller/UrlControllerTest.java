@@ -33,24 +33,69 @@ public class UrlControllerTest {
     private ObjectMapper objectMapper;
 
     @Test
-    void shorten_shouldReturn201() throws Exception {
-        ShortenRequest req = new ShortenRequest("https://google.com", null, 5);
-        ShortenResponse res = new ShortenResponse("https://short.y/123", "https://google.com", "123", Instant.now());
+    void shouldReturn201_whenRequestIsValid() throws Exception {
+        ShortenRequest req = new ShortenRequest("https://google.com", "validAlias", 30);
+        ShortenResponse res = new ShortenResponse("https://short.y/r/validAlias", "https://google.com", "validAlias", Instant.now());
 
-        when(urlService.createShortUrl(any(), anyString())).thenReturn(res);
+        when(urlService.createShortUrl(any(ShortenRequest.class), anyString())).thenReturn(res);
 
         mockMvc.perform(post("/api/v1/url/shorten")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req))
-                        .header("X-Forwarded-Proto", "https")
-                        .header("Host", "my-lambda.aws"))
+                        .header("Host", "localhost")
+                        .header("X-Forwarded-Proto", "https"))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.shortUrl").value("https://short.y/123"));
+                .andExpect(jsonPath("$.shortUrl").value("https://short.y/r/validAlias"));
     }
 
     @Test
-    void shorten_shouldReturn400_whenUrlIsInvalid() throws Exception {
-        ShortenRequest req = new ShortenRequest("", null, 5);
+    void shouldReturn400_whenOriginalUrlIsInvalid() throws Exception {
+        ShortenRequest req = new ShortenRequest("invalid-url", "validAlias", 30);
+
+        mockMvc.perform(post("/api/v1/url/shorten")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(req))
+                        .header("Host", "localhost"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldReturn400_whenAliasIsTooShort() throws Exception {
+        ShortenRequest req = new ShortenRequest("https://google.com", "abcd", 30);
+
+        mockMvc.perform(post("/api/v1/url/shorten")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(req))
+                        .header("Host", "localhost"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldReturn400_whenAliasIsTooLong() throws Exception {
+        String longAlias = "a".repeat(21);
+        ShortenRequest req = new ShortenRequest("https://google.com", longAlias, 30);
+
+        mockMvc.perform(post("/api/v1/url/shorten")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(req))
+                        .header("Host", "localhost"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldReturn400_whenAliasContainsInvalidCharacters() throws Exception {
+        ShortenRequest req = new ShortenRequest("https://google.com", "invalid@alias", 30);
+
+        mockMvc.perform(post("/api/v1/url/shorten")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(req))
+                        .header("Host", "localhost"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldReturn400_whenHostHeaderIsMissing() throws Exception {
+        ShortenRequest req = new ShortenRequest("https://google.com", "validAlias", 30);
 
         mockMvc.perform(post("/api/v1/url/shorten")
                         .contentType(MediaType.APPLICATION_JSON)
