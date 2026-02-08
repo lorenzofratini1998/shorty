@@ -42,7 +42,8 @@ Resources:
         AuthType: NONE
         Cors:
           AllowOrigins:
-            - "*"
+            - "http://localhost:4200"
+            - "https://lorenzofratini1998.github.io"
           AllowMethods:
             - "*"
           AllowHeaders:
