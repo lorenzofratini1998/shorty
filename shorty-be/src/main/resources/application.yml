@@ -1,3 +1,5 @@
+cors:
+  allowed-origins: "http://localhost:4200, https://lorenzofratini1998.github.io"
 spring:
   application:
     name: shorty-be
