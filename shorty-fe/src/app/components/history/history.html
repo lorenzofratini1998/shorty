@@ -1,0 +1,65 @@
+@if (historyService.history().length > 0) {
+
+  <div class="card w-full max-w-3xl bg-base-100 shadow-xl border border-base-300 mt-8 animate-fade-in-up">
+    <div class="card-body p-0 sm:p-6"> <div class="flex justify-between items-center px-4 pt-4 sm:px-0 sm:pt-0 mb-2">
+      <h3 class="card-title text-lg font-bold">Recent Links</h3>
+      <button (click)="historyService.clearHistory()"
+              class="btn btn-ghost btn-xs text-error hover:bg-error/10 gap-1.5">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+        Clear History
+      </button>
+    </div>
+
+      <div class="overflow-x-auto">
+        <table class="table table-zebra w-full">
+          <thead>
+          <tr>
+            <th>Short Link</th>
+            <th class="hidden sm:table-cell">Original URL</th> <th>Action</th>
+          </tr>
+          </thead>
+          <tbody>
+            @for (item of historyService.history(); track item.alias) {
+              <tr class="hover">
+
+                <td>
+                  <div class="flex flex-col">
+                    <a [href]="item.shortUrl"
+                       target="_blank"
+                       class="font-bold text-primary link link-hover text-base">
+                      {{ item.shortUrl | prettyUrl }}
+                    </a>
+                    <span class="text-[10px] opacity-50">
+                      {{ item.createdAt | date:'shortTime' }}
+                    </span>
+                  </div>
+                </td>
+
+                <td class="hidden sm:table-cell max-w-[200px]">
+                  <div class="truncate opacity-70 text-xs" [title]="item.originalUrl">
+                    {{ item.originalUrl }}
+                  </div>
+                </td>
+
+                <td>
+                  <button class="btn btn-square btn-sm btn-ghost"
+                          (click)="copyToClipboard(item.shortUrl)"
+                          title="Copy Link">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg>
+                  </button>
+                  <a [href]="item.shortUrl" target="_blank"
+                     class="btn btn-square btn-sm btn-ghost"
+                     title="Open Link">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                  </a>
+                </td>
+
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+}

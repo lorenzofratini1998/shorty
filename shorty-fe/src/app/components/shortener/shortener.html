@@ -1,0 +1,125 @@
+<div class="card w-full max-w-md bg-base-100 shadow-xl border border-base-300">
+  <div class="card-body">
+
+    <h2 class="card-title justify-center text-3xl font-black text-primary mb-6 tracking-tight flex items-center gap-2">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 transform -rotate-90 text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879M12 12L9.121 9.121m0 5.758a3 3 0 10-4.243 4.243 3 3 0 004.243-4.243zm0-5.758a3 3 0 10-4.243-4.243 3 3 0 004.243 4.243z" />
+      </svg>
+      Shorty
+    </h2>
+
+    @if (!result()) {
+      <form (ngSubmit)="submit()" class="flex flex-col gap-4">
+
+        <fieldset class="fieldset">
+          <legend class="fieldset-legend font-bold flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="h-4 w-4 opacity-70">
+              <path fill-rule="evenodd" d="M8.914 6.025a.75.75 0 0 1 1.06 0 3.5 3.5 0 0 1 0 4.95l-2 2a3.5 3.5 0 0 1-5.396-4.402.75.75 0 0 1 1.251.827 2 2 0 0 0 3.085 2.514l2-2a2 2 0 0 0 0-2.828.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
+              <path fill-rule="evenodd" d="M7.086 9.975a.75.75 0 0 1-1.06 0 3.5 3.5 0 0 1 0-4.95l2-2a3.5 3.5 0 0 1 5.396 4.402.75.75 0 0 1-1.251-.827 2 2 0 0 0-3.085-2.514l-2 2a2 2 0 0 0 0 2.828.75.75 0 0 1 0 1.06Z" clip-rule="evenodd" />
+            </svg>
+            Long URL
+            <span class="text-error text-lg leading-none">*</span>
+          </legend>
+
+          <input type="url"
+                 [ngModel]="originalUrl()" (ngModelChange)="originalUrl.set($event)"
+                 name="originalUrl"
+                 placeholder="https://..."
+                 class="input input-bordered validator w-full"
+                 required />
+          <p class="validator-hint hidden">Required field</p>
+        </fieldset>
+
+        <fieldset class="fieldset">
+          <legend class="fieldset-legend font-bold flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="h-4 w-4 opacity-70">
+              <path fill-rule="evenodd" d="M2.5 7.775V2.75a.25.25 0 0 1 .25-.25h5.025a.25.25 0 0 1 .177.073l6.25 6.25a.25.25 0 0 1 0 .354l-5.025 5.025a.25.25 0 0 1-.354 0l-6.25-6.25a.25.25 0 0 1-.073-.177Zm-1.5 0V2.75C1 1.784 1.784 1 2.75 1h5.025c.464 0 .91.184 1.238.513l6.25 6.25a1.75 1.75 0 0 1 0 2.474l-5.026 5.026a1.75 1.75 0 0 1-2.474 0l-6.25-6.25A1.75 1.75 0 0 1 1 7.775Z" clip-rule="evenodd" />
+              <path d="M6 5a1 1 0 1 0 0 2 1 1 0 0 0 0-2Z" />
+            </svg>
+            Alias (Optional)
+          </legend>
+
+          <div class="join w-full">
+            <span class="join-item btn btn-soft cursor-default">shrt.y/r/</span>
+            <input type="text"
+                   [ngModel]="customAlias()" (ngModelChange)="customAlias.set($event)"
+                   name="customAlias"
+                   placeholder="Add alias here"
+                   class="input join-item w-full validator"
+                   minlength="5"
+                   maxlength="20"
+                   pattern="[a-zA-Z0-9-_]*"
+            />
+          </div>
+          <div class="flex justify-between w-full px-1 mt-1">
+            <div class="text-xs">
+                <span class="text-base-content/60 validator-hint hidden">
+                    Auto-generated if empty
+                </span>
+              <p class="validator-hint text-error">
+                5-20 chars, letters/numbers only
+              </p>
+            </div>
+            <div class="text-xs opacity-50 font-mono">
+              {{ customAlias() ? customAlias().length : 0 }}/20
+            </div>
+          </div>
+        </fieldset>
+
+        <button type="submit" class="btn btn-primary w-full mt-4 btn-lg"
+                [disabled]="!originalUrl()">
+          Shorten link
+        </button>
+      </form>
+    }
+
+    @if (result()) {
+      <div class="flex flex-col gap-4 py-4 animate-fade-in-up">
+
+        <label class="fieldset-label font-bold flex items-center justify-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5 text-primary">
+            <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd" />
+          </svg>
+          Your Short Link
+        </label>
+
+        <div class="join w-full">
+          <input type="text"
+                 [value]="result() | prettyUrl"
+                 readonly
+                 class="input input-bordered join-item w-full text-center font-bold text-primary font-mono" />
+
+          <button (click)="copyToClipboard()" class="btn join-item"
+                  [class.btn-success]="copied()" [class.text-white]="copied()">
+            @if (copied()) {
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" /><path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm9.707 5.707a1 1 0 00-1.414-1.414L9 12.586l-1.293-1.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></svg>
+            } @else {
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg>
+            }
+          </button>
+        </div>
+
+        <div role="alert" class="alert alert-warning alert-soft text-xs">
+          <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-4 w-4" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+          <span>
+            <b>Demo Mode:</b> The domain <code>shrt.y</code> is for display only.
+            The actual working link is hosted on AWS Lambda.
+          </span>
+        </div>
+
+        <div class="flex gap-2 mt-2">
+          <a [href]="result()" target="_blank" class="btn btn-outline btn-primary flex-1 gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
+            Visit URL
+          </a>
+          <button (click)="reset()" class="btn btn-ghost flex-1">
+            Shorten Another
+          </button>
+        </div>
+      </div>
+    }
+
+  </div>
+</div>
