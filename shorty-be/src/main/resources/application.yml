@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: shorty-be
+  cloud:
+    aws:
+      dynamodb:
+        region: ${AWS_REGION:eu-central-1}
+  jackson:
+    default-property-inclusion: non_null
+    deserialization:
+      fail-on-unknown-properties: false
+  custom:
+    dynamodb:
+      table-name: ${TABLE_NAME:url_shortener_db}

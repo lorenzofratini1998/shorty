@@ -1,0 +1,93 @@
+name: Deploy AWS Lambda
+
+on:
+  push:
+    branches:
+      - develop
+      - master
+    paths:
+      - 'shorty-be/**'
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'shorty-be/**'
+
+jobs:
+  deploy-backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./shorty-be
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'corretto'
+          java-version: '21'
+          cache: 'maven'
+
+      - name: Cache SonarCloud packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
+      - name: Make mvnw executable
+        run: chmod +x mvnw
+
+      - name: Build and Test
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          ./mvnw -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+            -Dsonar.organization=${{ vars.SONAR_ORG }} \
+            -Dsonar.projectKey=${{ vars.SONAR_PROJECT_KEY }} \
+            -Dsonar.host.url=${{ vars.SONAR_HOST_URL }} \
+            -Dsonar.qualitygate.wait=true \
+            -Dsonar.coverage.jacoco.xmlReportPaths=target/**/jacoco.xml
+
+      - name: Set Stack Name
+        id: set-stack
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/master" ]]; then
+            echo "env_name=prod" >> $GITHUB_OUTPUT
+            echo "stack_name=shorty-stack-prod" >> $GITHUB_OUTPUT
+          else
+            echo "env_name=dev" >> $GITHUB_OUTPUT
+            echo "stack_name=shorty-stack-dev" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Configure AWS Credentials
+        if: github.event_name != 'pull_request'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-central-1
+
+      - name: Setup AWS SAM
+        if: github.event_name != 'pull_request'
+        uses: aws-actions/setup-sam@v2
+        with:
+          use-installer: true
+
+      - name: SAM Deploy
+        if: github.event_name != 'pull_request'
+        run: |
+          sam deploy \
+            --stack-name ${{ steps.set-stack.outputs.stack_name }} \
+            --template-file template.yml \
+            --capabilities CAPABILITY_IAM \
+            --resolve-s3 \
+            --no-confirm-changeset \
+            --no-fail-on-empty-changeset \
+            --region eu-central-1 \
+            --tags Environment=${{ steps.set-stack.outputs.env_name }}
