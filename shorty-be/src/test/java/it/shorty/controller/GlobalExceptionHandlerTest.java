@@ -34,7 +34,7 @@ public class GlobalExceptionHandlerTest {
 
         mockMvc.perform(post("/api/v1/url/shorten")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"originalUrl\":\"https://google.com\", \"customAlias\":\"dup\"}")
+                        .content("{\"originalUrl\":\"https://google.com\", \"customAlias\":\"alias\"}")
                         .header("Host", "localhost"))
                 .andExpect(status().isConflict()) // 409
                 .andExpect(jsonPath("$.title").value("Alias already in use"))
